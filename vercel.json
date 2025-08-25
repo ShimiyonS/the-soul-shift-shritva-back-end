@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "shritva",
+  "builds": [
+    {
+      "src": "./shritva.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "shritva.js"
+    }
+  ]
+}
