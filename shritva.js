@@ -87,6 +87,12 @@ app.post("/subscribe", async (req, res) => {
             },
         });
 
+
+        // indian time format
+        const dateIndia = new Date().toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+        });
+
         // Email content (format)
         let mailOptions = {
             from: `"My Website" <${email}>`,
@@ -97,7 +103,7 @@ app.post("/subscribe", async (req, res) => {
         <p>A new user has subscribed to your website.</p>
         <table border="1" cellpadding="5" cellspacing="0">
           <tr><td>📧 Email</td><td>${email}</td></tr>
-          <tr><td>📅 Date</td><td>${new Date().toLocaleString()}</td></tr>
+          <tr><td>📅 Date</td><td>${dateIndia}</td></tr>
         </table>
         <p> Keep growing your subscribers!</p>
       `,
