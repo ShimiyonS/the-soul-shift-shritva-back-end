@@ -70,7 +70,7 @@ app.post("/api/contact", async (req, res) => {
 // 📩 POST API for subscription
 app.post("/subscribe", async (req, res) => {
     const { email } = req.body;
-
+    console.log(email)
     if (!email) {
         return res.status(400).json({ success: false, message: "Email is required" });
     }
@@ -89,9 +89,9 @@ app.post("/subscribe", async (req, res) => {
 
         // Email content (format)
         let mailOptions = {
-            from: `"My Website" <your-email@gmail.com>`,
-            to: "your-email@gmail.com", // where you receive notifications
-            subject: "New Subscription Alert 🚀",
+            from: `"My Website" <${email}>`,
+            to: process.env.RECEIVER_EMAIL, // where you receive notifications
+            subject: "New Subscription Alert ",
             html: `
         <h2>🎉 New Subscriber!</h2>
         <p>A new user has subscribed to your website.</p>
@@ -99,13 +99,14 @@ app.post("/subscribe", async (req, res) => {
           <tr><td>📧 Email</td><td>${email}</td></tr>
           <tr><td>📅 Date</td><td>${new Date().toLocaleString()}</td></tr>
         </table>
-        <p>🚀 Keep growing your subscribers!</p>
+        <p> Keep growing your subscribers!</p>
       `,
         };
 
         await transporter.sendMail(mailOptions);
 
         res.status(200).json({ success: true, message: "Subscription email sent!" });
+        console.log("email send successfully ")
     } catch (error) {
         console.error("Error sending email:", error);
         res.status(500).json({ success: false, message: "Error sending email" });
