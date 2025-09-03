@@ -37,8 +37,8 @@ app.post("/api/contact", async (req, res) => {
 
         // 2. Mail options
         const mailOptions = {
-            from: `"${fullName}" <${email}>`,
-            to: process.env.RECEIVER_EMAIL,
+            from: `"${process.env.SMTP_NAME}" <${process.env.SMTP_USER}>`,
+            to: process.env.SMTP_USER,
             subject: `New Contact Form: ${service}`,
             text: `
         Full Name: ${fullName}
@@ -59,7 +59,7 @@ app.post("/api/contact", async (req, res) => {
         // 3. Send email
         await transporter.sendMail(mailOptions);
 
-        res.json({ success: true, message: "Message sent successfully ✅" });
+        res.json({ success: true, message: "Message sent successfully " });
     } catch (error) {
         console.error("Email error:", error);
         res.status(500).json({ success: false, message: "Something went wrong ❌" });
@@ -96,7 +96,7 @@ app.post("/subscribe", async (req, res) => {
         // Email content (format)
         let mailOptions = {
             from: `"My Website" <${email}>`,
-            to: process.env.RECEIVER_EMAIL, // where you receive notifications
+            to: email, // where you receive notifications
             subject: "New Subscription Alert ",
             html: `
         <h2>🎉 New Subscriber!</h2>
