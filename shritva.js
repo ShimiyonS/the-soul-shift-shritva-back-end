@@ -119,6 +119,126 @@ app.post("/subscribe", async (req, res) => {
     }
 });
 
+// 📅 Appointment API with Email and Google Sheets (via Google Apps Script)
+// 
+// Google Apps Script Setup (Simple - No Google Cloud needed):
+// 1. Open your Google Sheet
+// 2. Go to Extensions > Apps Script
+// 3. Paste the provided script (see comments below)
+// 4. Save and deploy as Web App
+// 5. Copy the Web App URL and set GOOGLE_APPS_SCRIPT_URL in .env
+// 
+// Environment Variable Required:
+// - GOOGLE_APPS_SCRIPT_URL: Your Google Apps Script Web App URL
+//
+app.post("/api/appointment", async (req, res) => {
+    try {
+        const { fullName, email, phone, service, preferredDate, preferredTime, duration, message } = req.body;
+
+        // 1. Setup email transporter
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT || 587,
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
+        // 2. Send email notification
+        const mailOptions = {
+            from: `"${process.env.SMTP_NAME || 'Shritva'}" <${process.env.SMTP_USER}>`,
+            to: process.env.SMTP_USER,
+            subject: `New Appointment Request: ${service}`,
+            html: `
+                <h3>New Appointment Request</h3>
+                <table border="1" cellpadding="10" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                    <tr><td><strong>Full Name:</strong></td><td>${fullName}</td></tr>
+                    <tr><td><strong>Email:</strong></td><td>${email}</td></tr>
+                    <tr><td><strong>Phone:</strong></td><td>${phone}</td></tr>
+                    <tr><td><strong>Service:</strong></td><td>${service}</td></tr>
+                    <tr><td><strong>Preferred Date:</strong></td><td>${preferredDate || 'Not specified'}</td></tr>
+                    <tr><td><strong>Preferred Time:</strong></td><td>${preferredTime || 'Not specified'}</td></tr>
+                    <tr><td><strong>Duration:</strong></td><td>${duration} minutes</td></tr>
+                    <tr><td><strong>Message:</strong></td><td>${message || 'No additional notes'}</td></tr>
+                </table>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        // 3. Update Google Sheets via Google Apps Script (Simple alternative)
+        try {
+            const googleAppsScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+
+            console.log("googleAppsScriptUrl", googleAppsScriptUrl);
+
+            if (googleAppsScriptUrl) {
+                const sheetData = {
+                    fullName: fullName,
+                    email: email,
+                    phone: phone,
+                    service: service,
+                    preferredDate: preferredDate || 'Not specified',
+                    preferredTime: preferredTime || 'Not specified',
+                    duration: `${duration} minutes`,
+                    message: message || 'No additional notes'
+                };
+
+                // Use native fetch (Node 18+) or node-fetch
+                let fetchFunction;
+                if (typeof globalThis.fetch === 'function') {
+                    fetchFunction = globalThis.fetch;
+                } else {
+                    const nodeFetch = await import('node-fetch');
+                    fetchFunction = nodeFetch.default;
+                }
+
+                // Send data to Google Apps Script web app
+                const response = await fetchFunction(googleAppsScriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(sheetData),
+                });
+
+                const responseText = await response.text();
+
+                if (response.ok) {
+                    console.log("✅ Appointment saved to Google Sheets via Apps Script");
+                } else {
+                    console.error("Google Apps Script response error:", response.status, response.statusText);
+                    console.error("Response body:", responseText);
+
+                    if (response.status === 401 || responseText.includes('Unauthorized')) {
+                        console.error("⚠️ Authorization Error: Please authorize the Google Apps Script:");
+                        console.error("1. Open your Google Apps Script project");
+                        console.error("2. Run the testDoPost() function once to trigger authorization");
+                        console.error("3. Click 'Review Permissions' and authorize");
+                        console.error("4. Redeploy the web app (Deploy > Manage deployments > Edit > Deploy)");
+                    }
+                }
+            }
+        } catch (sheetsError) {
+            console.error("Google Sheets error (non-critical):", sheetsError);
+            // Continue even if Sheets update fails
+        }
+
+        res.json({
+            success: true,
+            message: "Appointment request submitted successfully. We will connect with you shortly."
+        });
+    } catch (error) {
+        console.error("Appointment error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong. Please try again."
+        });
+    }
+});
+
 app.get("/", (req, res) => {
     res.send("API is running...");
 });
