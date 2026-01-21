@@ -159,8 +159,6 @@ app.post("/api/appointment", async (req, res) => {
                     <tr><td><strong>Phone:</strong></td><td>${phone}</td></tr>
                     <tr><td><strong>Service:</strong></td><td>${service}</td></tr>
                     <tr><td><strong>Preferred Date:</strong></td><td>${preferredDate || 'Not specified'}</td></tr>
-                    <tr><td><strong>Preferred Time:</strong></td><td>${preferredTime || 'Not specified'}</td></tr>
-                    <tr><td><strong>Duration:</strong></td><td>${duration} minutes</td></tr>
                     <tr><td><strong>Message:</strong></td><td>${message || 'No additional notes'}</td></tr>
                 </table>
             `,
