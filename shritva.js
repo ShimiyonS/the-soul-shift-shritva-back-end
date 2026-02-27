@@ -2,22 +2,30 @@ import express from "express";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import cors from "cors";
-// import bodyParser from "b"
-
+import routes from "./routes/index.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 8000;
 const app = express();
 app.use(express.json());
 
-// app.use(bodyParser.json());
-
 app.use(cors({
-    origin: "*",            // allow any origin
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// API routes (includes /api/auth/login, /api/auth/refresh, /api/auth/logout)
+app.use('/api', routes);
+
+// Error handler (e.g. auth 401/403)
+app.use((err, req, res, next) => {
+  const status = err.statusCode || 500;
+  res.status(status).json({
+    success: false,
+    message: err.message || 'Something went wrong'
+  });
+});
 
 // 📩 Contact API
 app.post("/api/contact", async (req, res) => {
